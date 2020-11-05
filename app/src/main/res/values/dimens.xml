@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="layout_margin_cardView">4dp</dimen>
+    <dimen name="layout_margin_title_text">8dp</dimen>
+    <dimen name="margin_description_text">8dp</dimen>
+    <dimen name="padding_default">16dp</dimen>
+    <dimen name="margin_default">16dp</dimen>
+</resources>

@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">My notes</string>
+    <string name="btn_hello">Hello World!</string>
+    <string name="title_app">Notes</string>
+    <string name="tools_title_note" translatable="false">Title note</string>
+    <string name="tools_description_note" translatable="false">Description Note</string>
+    <string name="new_note_title">New note</string>
+    <string name="note_title">Title</string>
+    <string name="note_text">Text note</string>
+    <string name="hint_note_text">Text note</string>
+    <string name="logout_menu_title">Exit</string>
+    <string name="logout_title">Exit</string>
+    <string name="logout_message">You are sure?</string>
+    <string name="logout_ok">OK</string>
+    <string name="logout_cancel">Cancel</string>
+    <string name="note_change_color">Color</string>
+    <string name="note_delete">Delete</string>
+    <string name="note_delete_title">Delete  note</string>
+    <string name="note_delete_message">Are you sure?</string>
+    <string name="note_delete_ok">OK</string>
+    <string name="note_delete_cancel">Cancel</string>
+</resources>
