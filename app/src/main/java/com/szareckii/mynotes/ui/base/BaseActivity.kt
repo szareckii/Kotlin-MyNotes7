@@ -8,14 +8,23 @@ import androidx.appcompat.app.AppCompatActivity
 import com.firebase.ui.auth.AuthUI
 import com.szareckii.mynotes.R
 import com.szareckii.mynotes.data.errors.NoAuthException
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.consumeEach
+import kotlin.coroutines.CoroutineContext
 
-abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
+abstract class BaseActivity<S> : AppCompatActivity(), CoroutineScope {
 
     companion object{
         private const val RC_SIGN_IN = 456
     }
 
-    abstract val viewModel: BaseViewModel<T, S>
+    override val coroutineContext: CoroutineContext by lazy {
+        Dispatchers.Main + Job()
+    }
+
+    private lateinit var dataJob: Job
+    private lateinit var errorJob: Job
+    abstract val viewModel: BaseViewModel<S>
     abstract val layoutRes: Int?
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,14 +32,31 @@ abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
         layoutRes?.let {
             setContentView(it)
         }
-        viewModel.getViewState().observe(this,{ value ->
-            value ?: return@observe
-            value.error?.let {
-                renderError(it)
-                return@observe
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dataJob = launch {
+            viewModel.getViewState().consumeEach {
+                renderData(it)
             }
-            renderData(value.data)
-        })
+        }
+        errorJob = launch {
+            viewModel.getErrorChannel().consumeEach {
+                renderError(it)
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        dataJob.cancel()
+        errorJob.cancel()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        coroutineContext.cancel()
     }
 
     protected fun renderError(error: Throwable?) {
@@ -67,6 +93,6 @@ abstract class BaseActivity<T, S : BaseViewState<T>> : AppCompatActivity() {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
     }
         
-    abstract fun renderData(data: T)
+    abstract fun renderData(data: S)
 
 }
