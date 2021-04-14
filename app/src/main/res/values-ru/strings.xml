@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Мои заметки</string>
+    <string name="btn_hello">Привет мир!</string>
+    <string name="title_app">Заметки</string>
+    <string name="new_note_title">Новая заметка</string>
+    <string name="note_title">Заголовок</string>
+    <string name="note_text">Текст заметки</string>
+    <string name="hint_note_text">Текст заметки</string>
+    <string name="logout_menu_title">Выход</string>
+    <string name="logout_title">Выход</string>
+    <string name="logout_message">Вы уверены?</string>
+    <string name="logout_ok">Да</string>
+    <string name="logout_cancel">Нет</string>
+    <string name="note_change_color">Цвет</string>
+    <string name="note_delete">Удалить</string>
+    <string name="note_delete_title">Удалить заметку</string>
+    <string name="note_delete_message">Вы уверены?</string>
+    <string name="note_delete_ok">Да</string>
+    <string name="note_delete_cancel">Отмена</string>
+</resources>
