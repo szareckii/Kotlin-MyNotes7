@@ -7,27 +7,15 @@ import com.szareckii.mynotes.data.NotesRepository
 import com.szareckii.mynotes.data.entity.User
 import com.szareckii.mynotes.data.errors.NoAuthException
 import com.szareckii.mynotes.ui.base.BaseViewModel
+import kotlinx.coroutines.launch
 
-class SplashViewModel(val notesRepository: NotesRepository): BaseViewModel<Boolean?, SplashViewState>() {
+class SplashViewModel(val notesRepository: NotesRepository): BaseViewModel<Boolean>() {
 
     var currentUserLiveData: LiveData<User?>? = null
 
-    private val currentUserObserver = object : Observer<User?> {
-        override fun onChanged(result: User?) {
-            viewStateLiveData.value = result?.let { SplashViewState(true) } ?: let {
-                SplashViewState(error = NoAuthException())
-            }
-            currentUserLiveData?.removeObserver(this)
-        }
-    }
-
-    fun requestUser(){
-        currentUserLiveData = notesRepository.getCurrentUser()
-        currentUserLiveData?.observeForever(currentUserObserver)
-    }
-
-    @VisibleForTesting
-    public override fun onCleared() {
-        currentUserLiveData?.removeObserver(currentUserObserver)
+    fun requestUser() = launch{
+        notesRepository.getCurrentUser()?.let {
+            setData(true)
+        } ?: setError(NoAuthException())
     }
 }

@@ -18,7 +18,7 @@ import org.koin.android.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
+class NoteActivity : BaseActivity<NoteData>() {
 
     companion object {
         private const val EXTRA_NOTE = "note"
@@ -58,7 +58,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         initView()
     }
 
-    override fun renderData(data: NoteViewState.Data) {
+    override fun renderData(data: NoteData) {
         if (data.isDeleted) finish()
 
         this.note = data.note
@@ -87,6 +87,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
             }
 
             toolbar.setBackgroundColor(ResourcesCompat.getColor(resources, color, null))
+            this.color = it.color
         }
 
         colorPicker.onColorClickListener = {

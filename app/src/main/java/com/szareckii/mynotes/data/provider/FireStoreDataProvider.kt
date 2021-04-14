@@ -1,12 +1,16 @@
 package com.szareckii.mynotes.data.provider
 
-import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.szareckii.mynotes.data.entity.Note
 import com.szareckii.mynotes.data.entity.User
 import com.szareckii.mynotes.data.errors.NoAuthException
 import com.szareckii.mynotes.data.model.NoteResult
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class FireStoreDataProvider(val store: FirebaseFirestore, val auth: FirebaseAuth): DataProvider {
     companion object {
@@ -20,64 +24,66 @@ class FireStoreDataProvider(val store: FirebaseFirestore, val auth: FirebaseAuth
     private val currentUser
         get() = auth.currentUser
 
-    override fun getCurrentUser() = MutableLiveData<User?>().apply {
-        value = currentUser?.let { User(it.displayName ?: "", it.email ?: "") }
+    override suspend fun getCurrentUser(): User? = suspendCoroutine {continuation ->
+        val user = currentUser?.let { User(it.displayName ?: "", it.email ?: "") }
+        continuation.resume(user)
     }
 
-    override fun getNotes() = MutableLiveData<NoteResult>().apply {
+    override fun subscribeToNotes():ReceiveChannel<NoteResult> = Channel<NoteResult>(Channel.CONFLATED).apply {
         try {
             notesReference.addSnapshotListener { snapshot, error ->
-                error?.let {
-                    value = NoteResult.Error(it)
-                    return@addSnapshotListener
-                }
-                snapshot?.let {
+                val value = error?.let {
+                    NoteResult.Error(it)
+                } ?: snapshot?.let {
                     val notes = it.documents.map { it.toObject(Note::class.java) as Note }
-                    value = NoteResult.Success(notes)
+                    NoteResult.Success(notes)
                 }
+
+                value?.let { offer(it) }
             }
         } catch (e : Throwable) {
-            value = NoteResult.Error(e)
+            offer(NoteResult.Error(e))
         }
     }
 
-    override fun saveNote(note: Note) = MutableLiveData<NoteResult>().apply {
+    override suspend fun saveNote(note: Note): Note = suspendCoroutine {continuation ->
         try {
         notesReference.document(note.id).set(note)
             .addOnSuccessListener {
-                value = NoteResult.Success(note)
+                continuation.resume(note)
             }.addOnFailureListener{
-                value = NoteResult.Error(it)
+                continuation.resumeWithException(it)
             }
         } catch (e : Throwable) {
-        value = NoteResult.Error(e)
+        continuation.resumeWithException(e)
         }
     }
 
-    override fun getNoteById(id: String) = MutableLiveData<NoteResult>().apply {
+    override suspend fun getNoteById(id: String):Note = suspendCoroutine {continuation ->
         try {
         notesReference.document(id).get()
                 .addOnSuccessListener {snapshot ->
                     val note = snapshot.toObject(Note::class.java) as Note
-                    value = NoteResult.Success(note)
+                    continuation.resume(note)
                 }.addOnFailureListener{
-                    value = NoteResult.Error(it)
+                    continuation.resumeWithException(it)
                 }
         } catch (e : Throwable) {
-            value = NoteResult.Error(e)
+            continuation.resumeWithException(e)
         }
     }
 
-    override fun deleteNote(id: String) = MutableLiveData<NoteResult>().apply {
+    override suspend fun deleteNote(id: String): Unit = suspendCoroutine {continuation ->
         try {
             notesReference.document(id).delete()
                     .addOnSuccessListener {
-                        value = NoteResult.Success(null)
+                        continuation.resume(Unit)
                     }.addOnFailureListener {
-                        value = NoteResult.Error(it)
+                        continuation.resume(Unit)
+                        continuation.resumeWithException(it)
                     }
         } catch (e: Throwable) {
-            value = NoteResult.Error(e)
+            continuation.resumeWithException(e)
         }
     }
 }
